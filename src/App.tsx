@@ -7,10 +7,11 @@ import LoadingPage from "./pages/LoadingPage";
 import Chat from "./pages/Chat/Chat";
 // import './App.css';
 
-const appDepotUrl = import.meta.env.APPDEPOT_URL;
+const appDepotUrl = import.meta.env.VITE_APPDEPOT_URL;
 
 function App() {
   const [isLoading] = useState(false);
+  console.log({ appDepotUrl })
   return (
     <>
     {/* Would like to convert this MUI app bar into a Server Component */}
