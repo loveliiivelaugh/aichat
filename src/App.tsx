@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { AppBar, Toolbar, IconButton, Avatar, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
+
 import LoadingPage from "./pages/LoadingPage";
 import Chat from "./pages/Chat/Chat";
 // import './App.css';
 
-const appDepotUrl = import.meta.env.VITE_APPDEPOT_URL;
+
+const appDepotUrl = (import.meta.env.MODE === "development")
+  ? "http://localhost:3000"
+  : import.meta.env.VITE_APPDEPOT_URL;
 
 function App() {
   const [isLoading] = useState(false);

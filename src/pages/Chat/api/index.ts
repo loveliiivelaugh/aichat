@@ -4,6 +4,8 @@ import axios from 'axios'
 
 const queryPaths = {
   local: "http://localhost:5001", 
+  "themeConfig": "/api/theme/themeConfig",
+  "content": "/api/cms/content",
   readFromDb: '/database/read_db',
   readOneFromDb: '/database/read_one_row',
   mutateServer: '/database/create_row',
