@@ -1,39 +1,80 @@
 "use client"
 
-import { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Avatar, Typography } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Avatar, Typography, Box } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
+// import { useShallow } from 'zustand/react/shallow'
+import { useQuery } from '@tanstack/react-query';
 
-import LoadingPage from "./pages/LoadingPage";
 import Chat from "./pages/Chat/Chat";
-// import './App.css';
+import { queries } from './pages/Chat/api';
+// import { useChatStore } from './pages/Chat/store';
 
 
-const appDepotUrl = (import.meta.env.MODE === "development")
-  ? "http://localhost:3000"
-  : import.meta.env.VITE_APPDEPOT_URL;
 
-function App() {
-  const [isLoading] = useState(false);
-  console.log({ appDepotUrl })
+function AppContent({ content }: { content: any }) {
+  // const chatStore = useChatStore(useShallow((state) => state));
+  // let cpxState = (window as any)?.crossPlatformState?.data?.chatStoreData;
+
+  // // Set state from cross platform exchange
+  // chatStore.setState(cpxState);
+
+  function getLink(apps: any, appName: string = "FamilyApps") {
+    const app = apps.find(({ name }: { name: string }) => (name === appName));
+
+    return (import.meta.env.MODE === "development")
+      ? app.dev_url
+      : app.url
+  };
+
+  const link = () => {
+    return (
+      <Typography 
+        variant="body1" 
+        component="a" 
+        href={getLink(content.apps, "Fitness")}
+        px={2}
+      >
+        Back to OpenFitness
+      </Typography>
+    )
+  }
+
+  // console.log({ cpxState });
+
   return (
     <>
-    {/* Would like to convert this MUI app bar into a Server Component */}
       <AppBar>
           <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-              <IconButton component="a" href={appDepotUrl}>
+            <Box>
+              <IconButton component="a" href={getLink(content.apps)}>
                   <HomeIcon />
               </IconButton>
+              {link()}
+              {((window as any)?.crossPlatformState?.appId === "Fitness") 
+                ? (link()) 
+                : (<></>)
+              }
+            </Box>
               <Typography variant="h6">AiChat</Typography> 
               <Avatar src={"M"} sx={{ width: 40, height: 40 }} />
           </Toolbar>
       </AppBar>
-      {isLoading 
-        ? <LoadingPage />
-        : <Chat />
-      }
+      <Chat content={content} />
     </>
   )
 }
 
-export default App
+
+function App() {
+  // Get app content 
+  const contentQuery = useQuery(queries().getContentQuery);
+
+  return ({
+    pending: <>Starting up...</>,
+    loading: <>Loading...</>,
+    success: <AppContent content={contentQuery.data} />,
+    error: <>Something went wrong</>
+  }[contentQuery.status])
+};
+
+export default App;

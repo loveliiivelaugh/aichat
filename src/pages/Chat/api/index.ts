@@ -10,6 +10,7 @@ const queryPaths = {
   readOneFromDb: '/database/read_one_row',
   mutateServer: '/database/create_row',
   readFromServer: '/database/read_db',
+  "getCrossPlatformState": '/api/cross-platform',
 };
 
 const hostname = (import.meta.env.MODE === "development") 
@@ -18,7 +19,7 @@ const hostname = (import.meta.env.MODE === "development")
 
 const clientConfig = {
   baseURL: hostname,
-  timeout: 5000,
+  // timeout: 5000,
   headers: {},
   auth: {
     username: import.meta.env.VITE_BASIC_USERNAME,
@@ -82,7 +83,7 @@ const queries = () => ({
   getIngestedFilesQuery: {
     queryKey: ['privateGPTingestedFiles'],
     queryFn: async () => {
-      const data = await client.get(`${hostname}/api/privategpt/list-ingested-files`)
+      const data = await client.get(`/api/sensative?endpoint=/api/privategpt/list-ingested-files`)
       return data;
     }
   },
@@ -90,7 +91,7 @@ const queries = () => ({
   getWebPageContent: {
     queryKey: ['webPageContent'],
     queryFn: async (params: any) => {
-      const data = await client.get(`${hostname}/api/llms/puppeteer?url=${params.url}`);
+      const data = await client.get(`/api/llms/puppeteer?url=${params.url}`);
       return data;
     },
   },
@@ -115,7 +116,12 @@ const queries = () => ({
       // window.crossPlatformState = data;
       return data;
     },
-  }
+  },
+
+  getContentQuery: {
+    queryKey: ["content"],
+    queryFn: async () => (await client.get(queryPaths.content)).data
+  },
 });
 
 export {

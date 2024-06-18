@@ -24,7 +24,10 @@ interface ChatState {
   toolsWindowDrawer: boolean;
   isInternetQuery: boolean;
 
+  appContent: any | null;
+
   // handlers
+  setAppContent: (appContent: any) => void;
   setIsInternetQuery: (isInternetQuery: boolean) => void;
   setToolsWindowDrawer: (toolsWindowDrawer: boolean) => void;
   setMutationOptions: (mutationOptions: { method: string; endpoint: string; table: string }) => void;
@@ -44,8 +47,8 @@ interface ChatState {
   handleSelectedOptionsTab: (value: number) => void;
   updateChatStatus: (status: string) => void;
   clearChat: () => void;
+  setState: (state: any) => void;
 }
-
 
 export const useChatStore = create<ChatState>((set) => ({
     messages: [],
@@ -69,6 +72,9 @@ export const useChatStore = create<ChatState>((set) => ({
     },
     toolsWindowDrawer: false,
     isInternetQuery: false,
+
+    appContent: null,
+    setAppContent: (appContent: any) => set(() => ({ appContent })),
   
     // handlers
     setIsInternetQuery: (isInternetQuery) => set(() => ({ isInternetQuery })),
@@ -90,7 +96,9 @@ export const useChatStore = create<ChatState>((set) => ({
     handleSelectedOptionsTab: (selectedOptionsTab) => set(() => ({ selectedOptionsTab })), // Number
     updateChatStatus: (chatStatus) => set(() => ({ chatStatus })), // String
     clearChat: () => set(() => ({ messages: [] })), // Fn
-    clearInput: () => set(() => ({ inputMessage: "" })) // Fn
+    clearInput: () => set(() => ({ inputMessage: "" })), // Fn
+
+    setState: (state: any) => set((prevState) => ({ ...prevState, ...state })),
   }));
   
 

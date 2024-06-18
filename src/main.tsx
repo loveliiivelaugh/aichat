@@ -13,29 +13,47 @@ import App from './App.tsx'
 import './index.css'
 
 
+
 const queryClient = new QueryClient();
 
 // On Apps First Load
 const InitConfigProvider = ({ children, session }: { children: any, session: any }) => {
+    // Check URL Params
+    const { search, pathname } = window.location;
+    const [key, crossPlatformStateId] = search 
+        ? search.split('?')[1].split('=') 
+        : [null, null];
+
+    const isCrossPlatform = pathname.includes('cross_platform');
+    // const chatStore = useChatStore();
+
     // Get Theme Config
     const themeConfigQuery = useQuery(({
         queryKey: ["themeConfig"],
         queryFn: async () => (await client.get(queryPaths.themeConfig)).data,
     }));
-    // Get content from CMS
-    const contentQuery = useQuery(({
-        queryKey: ["content"],
-        queryFn: async () => (await client.get(queryPaths.content)).data,
-        select: (data) => {
-            (window as any).appContent = data ? data : {};
+
+    let crossPlatformData: any;
+    const crossPlatformQuery = useQuery(({
+        queryKey: ["crossPlatformState"],
+        queryFn: async () => (await client.get(queryPaths.getCrossPlatformState)).data,
+        select: (data: any) => {
+
+            crossPlatformData = crossPlatformStateId
+                ? data.find((session: any) => (session.id == crossPlatformStateId))
+                : null;
             
-            return data;
+            (window as any).crossPlatformState = crossPlatformData;
+
+            return crossPlatformData ? crossPlatformData : data;
         }
     }));
 
-    client.defaults.headers.common["auth-token"] = `userAuthToken=${session?.access_token}&appId=${import.meta.env.VITE_APP_ID}`
-    // console.log(import.meta)
-    console.log({contentQuery}) as any;
+    console.log({ 
+        crossPlatformQuery, 
+        isCrossPlatform, 
+    });
+    client.defaults.headers.common["auth-token"] = `userAuthToken=${session?.access_token}&appId=${import.meta.env.VITE_APP_ID}`;
 
     // Set global access to server client
     (window as any).client = client;

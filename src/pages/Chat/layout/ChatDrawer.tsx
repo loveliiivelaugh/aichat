@@ -10,27 +10,29 @@ import {
 } from '@mui/material';
 
 // Icons
-import { Email, Lock } from '@mui/icons-material';
+import { Lock } from '@mui/icons-material';
 import SendIcon from '@mui/icons-material/Send';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
-import ShareIcon from '@mui/icons-material/Share';
-import HelpCenterIcon from '@mui/icons-material/HelpCenter';
+// import ShareIcon from '@mui/icons-material/Share';
+// import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 // Services
 // import { cms } from '../../../utilities/cms';
 import { useChatStore } from "../store";
 import { client, queries } from "../api";
+import { useSupabaseStore } from '../../../Auth/Auth';
 
 // import 'react-lazy-load-image-component/src/effects/opacity.css';
 
 // import notionIcon from '../../assets/notion_icon.png';
-const notionIcon = null;
+// const notionIcon = null;
 
-const ChatDrawer = forwardRef(() => {
+const ChatDrawer = forwardRef((props: any,) => {
     const chat = useChatStore();
+    const { session } = useSupabaseStore(); // user session
     const mutation = useMutation(queries().modifyDb2());
     const availableModels = useQuery(queries().readFromDb('models'))
     const ingestedFiles = useQuery(queries().getIngestedFilesQuery);
@@ -50,6 +52,17 @@ const ChatDrawer = forwardRef(() => {
 
     let chatSessions = data?.data
 
+    // get one session from chat history to prepopulate the chat 
+    const sessionQuery = useQuery({
+        ...queries().readOneFromDb(),
+        select: ({ data }: any) => {
+            console.log("sessionQuery.select: ", data)
+            handleChatSelection(data);
+            return data
+        }
+    });
+    console.log("sessionQuery: ", sessionQuery)
+
     // let isSomethingWrong = (!availableModels.data || !ingestedFiles.data || !chatSessions);
 
     if (chatSessionsIsLoading || chatSessionsFetching) {
@@ -65,6 +78,7 @@ const ChatDrawer = forwardRef(() => {
             table: "chats",
             payload: {
                 session_name: chat.activeChat?.session_name,
+                user_id: (session?.user?.id || null),
                 messages: []
             }
         }, {
@@ -102,72 +116,26 @@ const ChatDrawer = forwardRef(() => {
         chat.handleActiveChat(selection);
         console.log('handleChatSelection: ', selection, data, chat)
 
-        // use selection.session_id to query for the chat history
-        // const response = await readOne.refetch({ table: 'chats', id: selection.session_id });
-        const uri = `/database/read_one_row?table=chats&id=${selection.session_id}`
-        const response = await client.get(uri);
-        console.log("READONEROW response: ", response)
+        try {
+            const uri = `/database/read_one_row?table=chats&id=${selection.session_id}`
+            const response = await client.get(uri);
+            console.log("READONEROW response: ", response)
+    
+            chat.setMessages(response.data.messages || [])
+    
+            refetchChatSessions();
 
-        chat.setMessages(response.data.messages || [])
-
-        refetchChatSessions();
+        } catch (error: any) {
+            
+            console.error(error)
+        }
 
         // // props.scrollChatToBottom();
         // chat.createAlert({
         //     type: "success",
         //     message: `${selection?.session_name} selected`
         // })
-    }
-
-    const handleExportToNotion = async () => {
-        // try {
-        //     // Create Notion Page with chats as page content
-        //     const response = await createPage({ 
-        //         title: chat?.activeChat?.session_name, 
-        //         content: chat?.messages || [] 
-        //     });
-
-        //     // Add the new Notion page name and page id to saved in database
-        //     await add({
-        //         table: 'blogs',
-        //         payload: {
-        //             page_id: response?.data?.id,
-        //             name: chat?.activeChat?.session_name
-        //         }
-        //     });
-
-        //     // // Trigger Success Alert
-        //     // actions.createAlert({ 
-        //     //     type: "success", 
-        //     //     message: `${chat?.activeChat?.session_name} Exported to Notion` 
-        //     // });
-
-        //     // Create PDF
-        //     const pdf = await actions.createPdf(chat?.messages
-        //         .map(message => `${message?.sender}: ${message?.text}`)
-        //         .join('\n') || '');
-
-        //     console.log("pdf: ", pdf);
-        //     const formData = new FormData();
-        //     formData.append('file', pdf?.blob, `${chat?.activeChat?.session_name}.pdf`);
-
-        //     // Upload PDF to PrivateGPT
-        //     const uploadResponse = await ingestDocument(formData);
-
-        //     console.log("uploadResponse: ", uploadResponse);
-
-        //     // // Trigger Success Alert
-        //     // actions.createAlert({ 
-        //     //     type: "success", 
-        //     //     message: `Ingested ${chat?.activeChat?.session_name} to PrivateGPT` 
-        //     // });
-
-        // } catch (error) {
-        //     console.error(error);
-        //     // Trigger Error Alert
-        //     actions.createAlert({ type: "error", message: error?.messager || "An error occurred" });
-        // }
-    }
+    };
 
     const handleAddAttachment = async () => {
 
@@ -196,6 +164,9 @@ const ChatDrawer = forwardRef(() => {
             console.log("response: ", response);
         };
     };
+
+
+    console.log("store: ", chat)
     
 
     return (
@@ -256,6 +227,7 @@ const ChatDrawer = forwardRef(() => {
                                     '&:hover': { background: "rgba(0,0,0,0.1)" }
                                 }}
                             >
+                                {console.log("session: ", session) as any}
                                 <ListItemButton onClick={() => handleChatSelection(session)}>
                                     <ListItemText primary={session?.session_name} secondary={session.date} />
                                 </ListItemButton>
@@ -277,16 +249,18 @@ const ChatDrawer = forwardRef(() => {
                                 </Typography>
                             </Toolbar>
                             <Divider />
-                            {
+                            { availableModels && availableModels?.data?.data &&
                                 availableModels?.isLoading 
                                 ? <CircularProgress /> 
-                                : [
+                                : "Not available" || [
                                     // available models coming directly from Ollama
-                                    ...availableModels ? availableModels?.data?.data : [],
-                                    // Have to add non-Ollama models manually
-                                    { name: "PrivateGPT", value: "PrivateGPT" },
-                                    { name: "Llama 2 Online", value: "Llama 2:online" },
-                                    { name: "Llama 2 Functions", value: "Llama 2:functions" },
+                                    ...availableModels 
+                                        ? availableModels?.data?.data 
+                                        : []
+                                    // // Have to add non-Ollama models manually
+                                    // { name: "PrivateGPT", value: "PrivateGPT" },
+                                    // { name: "Llama 2 Online", value: "Llama 2:online" },
+                                    // { name: "Llama 2 Functions", value: "Llama 2:functions" },
                                 ].map((model, index) => (
                                 <ListItem
                                     key={index} 
@@ -335,9 +309,10 @@ const ChatDrawer = forwardRef(() => {
                                 </IconButton>
                             </Toolbar>
                             <Divider />
-                            {ingestedFiles.isLoading 
+                            {ingestedFiles 
+                            && ingestedFiles.isLoading 
                                 ? <CircularProgress />
-                                :  (!ingestedFiles.data?.data || !ingestedFiles.data?.data.length)
+                                :  (!ingestedFiles?.data?.data || !ingestedFiles?.data?.data.length)
                                     ? (
                                     <ListItem sx={{ textAlign: "center" }}>
                                         <Typography variant="body1" p={1}>
@@ -361,6 +336,7 @@ const ChatDrawer = forwardRef(() => {
                                     </ListItem>
                                 ))
                             }
+                            {console.log("ingestedFiles: ", ingestedFiles) as any}
                         </List>
                     ),
                     "3": ( // Chat Settings
@@ -372,45 +348,45 @@ const ChatDrawer = forwardRef(() => {
                             </Toolbar>
                             <Divider />
                             {[
-                                {
-                                    name: "Export to Notion",
-                                    icon: <img src={notionIcon || undefined} alt="notion icon" style={{ width: 24, height: 24 }} />,
-                                    action: handleExportToNotion
-                                },
-                                {
-                                    name: "Export to Google Drive",
-                                    icon: <DownloadIcon />
-                                },
+                                // {
+                                //     name: "Export to Notion",
+                                //     icon: <img src={notionIcon || undefined} alt="notion icon" style={{ width: 24, height: 24 }} />,
+                                //     action: handleExportToNotion
+                                // },
+                                // {
+                                //     name: "Export to Google Drive",
+                                //     icon: <DownloadIcon />
+                                // },
                                 {
                                     name: "Download",
                                     icon: <DownloadIcon />,
                                     action: handleDownload
                                 },
-                                {
-                                    name: "Email",
-                                    icon: <Email />
-                                },
-                                {
-                                    name: "Share",
-                                    icon: <ShareIcon />
-                                },
+                                // {
+                                //     name: "Email",
+                                //     icon: <Email />
+                                // },
+                                // {
+                                //     name: "Share",
+                                //     icon: <ShareIcon />
+                                // },
                                 {
                                     name: "Clear Messages",
                                     icon: <DeleteIcon />,
 
                                 },
-                                {
-                                    name: "Feature Request",
-                                    icon: <HelpCenterIcon />,
-                                },
-                                {
-                                    name: "Report Bug",
-                                    icon: <HelpCenterIcon />,
-                                },
-                                {
-                                    name: "Help",
-                                    icon: <HelpCenterIcon />,
-                                },
+                                // {
+                                //     name: "Feature Request",
+                                //     icon: <HelpCenterIcon />,
+                                // },
+                                // {
+                                //     name: "Report Bug",
+                                //     icon: <HelpCenterIcon />,
+                                // },
+                                // {
+                                //     name: "Help",
+                                //     icon: <HelpCenterIcon />,
+                                // },
 
                             ].map((setting, index) => (
                                     <ListItem

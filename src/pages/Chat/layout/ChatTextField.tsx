@@ -8,44 +8,69 @@ import SendIcon from '@mui/icons-material/Send';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
+import { client } from "../api";
 import { useChatStore } from "../store";
-// import { client } from "../api";
+import { useSupabaseStore } from "../../../Auth/Auth";
 
 interface ChatTextFieldPropTypes {
     inputMessage: string;
     setInputMessage: (value: string) => void;
     handleKeyPress: (event: any) => void;
     handleSendMessage: () => void;
+    content: any;
 }
 
-const ChatTextField = forwardRef((props: ChatTextFieldPropTypes ) => {
-
+const ChatTextField = forwardRef((props: ChatTextFieldPropTypes, ref: any ) => {
     const chat = useChatStore();
+    const supabaseStore = useSupabaseStore();
     // const stabilityBalance = useQuery(queries.getStabilityBalance);
-    // console.log({ stabilityBalance })
 
     const openCameraApp = async () => {
-        // // Remove all functions from cameraStore
-        // const chatStoreData = Object.assign(
-        //     {}, 
-        //     ...Object
-        //         .keys(chat)
-        //         .map((key) => (typeof((chat as any)[key]) !== 'function') && ({ [key]: (chat as any)[key] }))
-        //         .filter(Boolean)
-        // );
 
-        // const payload = {
-        //     appId: "aichat",
-        //     source: "3002",
-        //     data: {
-        //         chatStoreData,
-        //         incomingPlatformData: (window as any).crossPlatformState
-        //     }
-        // };
-        
-        // const response = await client.post('/api/cross-platform', payload);
-        // if (response.status === 200) window.location.href = "http://localhost:5175";
-    }
+        // Remove all functions from cameraStore
+        const chatStoreData = Object.assign(
+            {}, 
+            ...Object
+                .keys(chat)
+                .map((key) => (typeof((chat as any)[key]) !== 'function') && ({ [key]: (chat as any)[key] }))
+                .filter(Boolean)
+        );
+
+        function getApp(appName: string) {
+            return props.content.apps
+                .find(({ name }: { name: string }) => (name === appName));
+        };
+
+        const thisApp = getApp("AI");
+        const nextApp = getApp("camera"); // next app
+
+        const link = (import.meta.env.MODE === "development")
+            ? nextApp.dev_url
+            : nextApp.url;
+
+        console.log({ thisApp, nextApp })
+
+        const payload = {
+            appId: thisApp?.name,
+            source: thisApp?.dev_url,
+            destination_url: link,
+            destination_app: nextApp?.name,
+            data: {
+                chatStoreData,
+                crossPlatformState: (window as any).crossPlatformState
+            },
+            user_id: (supabaseStore.session.user?.id || null)
+        };
+
+        console.log({ payload });
+
+        const response = await client.post('/api/cross-platform', payload);
+
+        if (response.status === 200) {
+            let queryString = `${link}/cross_platform?id=${response.data[0].id}`;
+            window.location.href = queryString;
+        };
+    };
 
     const stabilityBalance = 0;
 
@@ -71,7 +96,7 @@ const ChatTextField = forwardRef((props: ChatTextFieldPropTypes ) => {
             </Box> */}
             <TextField
                 id="multiline-input"
-                // ref={ref}
+                ref={ref}
                 variant="outlined"
                 fullWidth
                 autoFocus
@@ -89,14 +114,7 @@ const ChatTextField = forwardRef((props: ChatTextFieldPropTypes ) => {
                                 sx={theme => ({ color: theme.palette.primary.main })}
                                 aria-label="filter"
                                 size="small"
-                                // component="a"
-                                // href="http://localhost:5175/source/5174"
-                                // target="_blank"
-                                // rel="noopener noreferrer"
                                 onClick={openCameraApp}
-                                // onClick={() => ({
-                                //     window.location.href = "http://localhost:5175"
-                                // }) || chat.handleView("camera")}
                             >
                                 <CameraIcon />
                             </IconButton>
@@ -115,7 +133,7 @@ const ChatTextField = forwardRef((props: ChatTextFieldPropTypes ) => {
                             <IconButton
                                 sx={theme => ({ color: theme.palette.primary.main })}
                                 aria-label="send"
-                                onClick={() => chat.handleView("voice")}
+                                // onClick={() => chat.handleView("voice")}
                                 size="small"
                             >
                                 <RecordVoiceOverIcon />

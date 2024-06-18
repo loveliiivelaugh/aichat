@@ -22,15 +22,11 @@ interface MessageResult {
 
 const hostname = import.meta.env.VITE_HOSTNAME;
 
-const Chat = forwardRef(() => {
+const Chat = forwardRef((props: { content : any }) => {
     const chatStore = useChatStore();
     const query = useQuery(queries().readFromDb('chats'));
     const serverMutation = useMutation(queries().postToServer())
     // const braveSearchQuery = useQuery(queries().getBraveSearchQuery)
-    // get one session from chat history to prepopulate the chat 
-    const sessionQuery = useQuery(queries().readOneFromDb());
-    console.log("sessionQuery: ", sessionQuery)
-
 
     const textFieldRef = useRef();
 
@@ -51,27 +47,27 @@ const Chat = forwardRef(() => {
                 chatStore.handleMode(inputMessage.split('/')[1] || 'chat');
                 // chatStore.clearInput();
             }
-            else if (chatStore.mode === "internet") {
-                // make request to brave search api
-                // const response = await braveSearchQuery.refetch({ query: inputMessage });
-                // console.log("BraveSearchQuery response: ", response)
+            // else if (chatStore.mode === "internet") {
+            //     // make request to brave search api
+            //     // const response = await braveSearchQuery.refetch({ query: inputMessage });
+            //     // console.log("BraveSearchQuery response: ", response)
 
-                // const summaries = Promise.all(response.data.map(async (item) => {
-                //     const summary = await puppeteerQuery.refetch();
-                // }))
+            //     // const summaries = Promise.all(response.data.map(async (item) => {
+            //     //     const summary = await puppeteerQuery.refetch();
+            //     // }))
 
-                // Open Tools Window Drawer
-                chatStore.setToolsWindowDrawer(true);
+            //     // Open Tools Window Drawer
+            //     chatStore.setToolsWindowDrawer(true);
 
-                // Build response message in UI of Drawer
+            //     // Build response message in UI of Drawer
 
-                // Use AI to determine which links to use
+            //     // Use AI to determine which links to use
 
-                // Make text query with the information from the search results
+            //     // Make text query with the information from the search results
 
-                // Reset isInternetQuery
-                chatStore.setIsInternetQuery(false);
-            }
+            //     // Reset isInternetQuery
+            //     chatStore.setIsInternetQuery(false);
+            // }
             else {
                 const message = {
                     ...getMetaData(),
@@ -96,13 +92,16 @@ const Chat = forwardRef(() => {
                 // Only need to send the current message and conversation id
                 // Will query the running messages from the backend
                 await serverMutation.mutate({
-                    url: `${hostname}/api/llms/postChat`,
+                    url: `/api/sensative?endpoint=/api/aichat/postChat`,
                     payload: {
                         chatMode: chatStore.mode,
                         id: chatStore.activeChat.id,
                         message
                     }
-                }, { onError: console.error, onSuccess: handleSuccess });
+                }, { onError: console.error, onSuccess: (result) => {
+                    console.log("is onSuccess in frontend handler working: ?", result)
+                    handleSuccess(result)
+                } });
 
                 // Refetch Chat Query to align chat state with multiple db updates
                 query.refetch();
@@ -179,12 +178,7 @@ const Chat = forwardRef(() => {
         }
     };
 
-    let isGettingThingsReady = (
-        query.isLoading 
-        || query.isFetching
-        || sessionQuery.isLoading
-        || sessionQuery.isFetching
-    );
+    let isGettingThingsReady = (query.isLoading || query.isFetching);
 
     const imageViewProps = {
         inputMessage: chatStore.inputMessage,
@@ -204,13 +198,12 @@ const Chat = forwardRef(() => {
         textFieldRef,
         handleKeyPress,
         handleSendMessage,
+        content: props.content
     };
 
     const views = {
         chat: <ChatView {...chatViewProps} />,
         // voice: <VoiceView />,
-        // camera: <CameraView />,
-        // image: <ImageView {...imageViewProps} />,
         launching: (
             <motion.div>
                 <Box sx={{ height: '100vh', width: '100vw', background: '#333', pt: "50%", textAlign: 'center' }}>
@@ -237,7 +230,6 @@ const Chat = forwardRef(() => {
                 : (views as any)[chatStore.view] || views['chat']
             }
             <ChatDrawer />
-            {/* <ToolsWindowDrawer /> */}
             {["chat", "image"].includes(chatStore.view) && 
                 <ChatTextField {...chatTextFieldProps} />
             }
