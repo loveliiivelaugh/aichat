@@ -30,7 +30,7 @@ import { useSupabaseStore } from '../../../Auth/Auth';
 // import notionIcon from '../../assets/notion_icon.png';
 // const notionIcon = null;
 
-const ChatDrawer = forwardRef((props: any,) => {
+const ChatDrawer = forwardRef(() => {
     const chat = useChatStore();
     const { session } = useSupabaseStore(); // user session
     const mutation = useMutation(queries().modifyDb2());

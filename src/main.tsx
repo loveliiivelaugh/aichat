@@ -20,7 +20,7 @@ const queryClient = new QueryClient();
 const InitConfigProvider = ({ children, session }: { children: any, session: any }) => {
     // Check URL Params
     const { search, pathname } = window.location;
-    const [key, crossPlatformStateId] = search 
+    const [, crossPlatformStateId] = search 
         ? search.split('?')[1].split('=') 
         : [null, null];
 
