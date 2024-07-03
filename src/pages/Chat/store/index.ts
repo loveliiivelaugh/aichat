@@ -23,7 +23,8 @@ interface ChatState {
   };
   toolsWindowDrawer: boolean;
   isInternetQuery: boolean;
-
+  chatMode: '/create' | '/chat' | '/imagine' | '/internet',
+  chatModes: string[],
   appContent: any | null;
 
   // handlers
@@ -53,13 +54,15 @@ interface ChatState {
 export const useChatStore = create<ChatState>((set) => ({
     messages: [],
     view: "chat" || "launching",
-    mode: "chat",
-    imageSrc: null,
-    imageClassification: null,
+    chatMode: '/chat',
+    chatModes: ['/create', '/chat', '/imagine', '/internet'],
+    mode: "chat", // I think can be deprecated: image and voice are handled by new microservices
+    imageSrc: null, // " ^^ "
+    imageClassification: null, // " ^^ "
     drawerOpen: false,
     activeChat: null,
     activeChatId: null,
-    visionMode: 'default',
+    visionMode: 'default',  // " ^^ "
     defaultModel: 'llama3:latest',
     selectedOptionsTab: 0,
     drawerView: "read", // options: ['read', 'add']
@@ -72,7 +75,6 @@ export const useChatStore = create<ChatState>((set) => ({
     },
     toolsWindowDrawer: false,
     isInternetQuery: false,
-
     appContent: null,
     setAppContent: (appContent: any) => set(() => ({ appContent })),
   

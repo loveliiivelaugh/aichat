@@ -11,21 +11,27 @@ const queryPaths = {
   mutateServer: '/database/create_row',
   readFromServer: '/database/read_db',
   "getCrossPlatformState": '/api/cross-platform',
+  "postChat": `/api/sensative?endpoint=/api/aichat/postChat`,
+  // Ingest is not working all the way yet. 
+  // Upload to server is working but ingest to PrivateGPT is not
+  "ingest": `/api/privategpt/ingest-files`,
+  "hostname": (import.meta.env.MODE === "development") 
+    ? "http://localhost:5001"
+    : import.meta.env.VITE_HOSTNAME
 };
 
-const hostname = (import.meta.env.MODE === "development") 
-  ? queryPaths.local
-  : import.meta.env.VITE_HOSTNAME;
+
 
 const clientConfig = {
-  baseURL: hostname,
+  baseURL: queryPaths.hostname,
   // timeout: 5000,
   headers: {},
-  auth: {
-    username: import.meta.env.VITE_BASIC_USERNAME,
-    password: import.meta.env.VITE_BASIC_PASSWORD
-  },
+  // auth: {
+  //   username: import.meta.env.VITE_BASIC_USERNAME,
+  //   password: import.meta.env.VITE_BASIC_PASSWORD
+  // },
 };
+
 
 const client = axios.create(clientConfig);
 

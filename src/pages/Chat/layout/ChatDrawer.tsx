@@ -22,7 +22,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 // Services
 // import { cms } from '../../../utilities/cms';
 import { useChatStore } from "../store";
-import { client, queries } from "../api";
+import { client, queries, queryPaths } from "../api";
 import { useSupabaseStore } from '../../../Auth/Auth';
 
 // import 'react-lazy-load-image-component/src/effects/opacity.css';
@@ -114,17 +114,17 @@ const ChatDrawer = forwardRef(() => {
     const handleChatSelection = async (selection: any) => {
         chat.handleDrawer(false);
         chat.handleActiveChat(selection);
-        console.log('handleChatSelection: ', selection, data, chat)
+        // console.log('handleChatSelection: ', selection, data, chat)
 
-        try {
-            const uri = `/database/read_one_row?table=chats&id=${selection.session_id}`
-            const response = await client.get(uri);
-            console.log("READONEROW response: ", response)
+        if (selection?.session_id) try {
+            const queryParams = `?table=chats&id=${selection.session_id}`;
+
+            const response = await client.get(queryPaths.readOneFromDb + queryParams);
+            // console.log("READONEROW response: ", response)
     
             chat.setMessages(response.data.messages || [])
     
             refetchChatSessions();
-
         } catch (error: any) {
             
             console.error(error)
@@ -152,11 +152,7 @@ const ChatDrawer = forwardRef(() => {
 
             formData.append('pdf', file);
 
-            // Ingest is not working all the way yet. 
-            // Upload to server is working but ingest to PrivateGPT is not
-            const uri = `/api/privategpt/ingest-files`;
-
-            const response = await fetch(uri, {
+            const response = await fetch(queryPaths.ingest, {
                 method: "post",
                 body: formData
             });
@@ -166,7 +162,7 @@ const ChatDrawer = forwardRef(() => {
     };
 
 
-    console.log("store: ", chat)
+    // console.log("store: ", chat)
     
 
     return (

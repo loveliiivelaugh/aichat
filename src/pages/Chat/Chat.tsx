@@ -9,7 +9,7 @@ import { ChatView } from './views';
 // import ToolsWindowDrawer from './layout/ToolsWindowDrawer';
 // import { ChatView, CameraView, ImageView, VoiceView } from './views';
 
-import { queries } from './api';
+import { queries, queryPaths } from './api';
 import { useChatStore } from './store'
 
 interface MessageResult {
@@ -19,14 +19,10 @@ interface MessageResult {
     response?: string
 }
 
-
-const hostname = import.meta.env.VITE_HOSTNAME;
-
 const Chat = forwardRef((props: { content : any }) => {
     const chatStore = useChatStore();
     const query = useQuery(queries().readFromDb('chats'));
-    const serverMutation = useMutation(queries().postToServer())
-    // const braveSearchQuery = useQuery(queries().getBraveSearchQuery)
+    const serverMutation = useMutation(queries().postToServer());
 
     const textFieldRef = useRef();
 
@@ -43,31 +39,10 @@ const Chat = forwardRef((props: { content : any }) => {
 
         console.log('handleSendMessage.input: ', inputMessage)
         if (inputMessage.trim() !== '') {
-            if (['/create', '/chat', '/imagine', '/internet'].includes(inputMessage)) {
+            if (chatStore.chatModes.includes(inputMessage)) {
                 chatStore.handleMode(inputMessage.split('/')[1] || 'chat');
-                // chatStore.clearInput();
+                chatStore.handleInput(""); // clear the chat
             }
-            // else if (chatStore.mode === "internet") {
-            //     // make request to brave search api
-            //     // const response = await braveSearchQuery.refetch({ query: inputMessage });
-            //     // console.log("BraveSearchQuery response: ", response)
-
-            //     // const summaries = Promise.all(response.data.map(async (item) => {
-            //     //     const summary = await puppeteerQuery.refetch();
-            //     // }))
-
-            //     // Open Tools Window Drawer
-            //     chatStore.setToolsWindowDrawer(true);
-
-            //     // Build response message in UI of Drawer
-
-            //     // Use AI to determine which links to use
-
-            //     // Make text query with the information from the search results
-
-            //     // Reset isInternetQuery
-            //     chatStore.setIsInternetQuery(false);
-            // }
             else {
                 const message = {
                     ...getMetaData(),
@@ -92,7 +67,7 @@ const Chat = forwardRef((props: { content : any }) => {
                 // Only need to send the current message and conversation id
                 // Will query the running messages from the backend
                 await serverMutation.mutate({
-                    url: `/api/sensative?endpoint=/api/aichat/postChat`,
+                    url: queryPaths.postChat,
                     payload: {
                         chatMode: chatStore.mode,
                         id: chatStore.activeChat.id,
@@ -110,7 +85,7 @@ const Chat = forwardRef((props: { content : any }) => {
             // scrollChatToBottom();
         }
         // Clear the input
-        // chatStore.clearInput()
+        chatStore.handleInput(""); // clear the chat
     };
 
     const handleSendPicture = async () => {
@@ -138,7 +113,7 @@ const Chat = forwardRef((props: { content : any }) => {
             // Only need to send the current message and conversation id
             // Will query the running messages from the backend
             await serverMutation.mutate({
-                url: `${hostname}/api/llms/postChat`,
+                url: queryPaths.postChat,
                 payload: {
                     id: chatStore.activeChat.id,
                     message: ({
@@ -169,7 +144,6 @@ const Chat = forwardRef((props: { content : any }) => {
 
         if ((event.shiftKey && event.key === 'Enter')) 
             chatStore.handleInput(chatStore.inputMessage + '\n');
-        else if (event.key === 'Enter' && chatStore.imageSrc) handleSendPicture();
         else if (event.key === 'Enter') handleSendMessage();
         else if (event.key === 'Escape') {
             chatStore.handleImageSrc(null);
@@ -210,7 +184,6 @@ const Chat = forwardRef((props: { content : any }) => {
                     <Typography variant="h4" sx={{ color: 'white' }}>
                         Getting things ready
                     </Typography>
-                    {/* <SparklesCore /> */}
                     <CircularProgress />
                 </Box>
             </motion.div>

@@ -2,7 +2,9 @@ import ReactDOM from 'react-dom/client'
 import { StrictMode, Suspense } from 'react'
 
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
-// import Keycloak from 'keycloak-js';
+// // import Keycloak from 'keycloak-js';
+// import { hc } from 'hono/client';
+// import { v4 as uuidv4 } from 'uuid';
 
 // import { SmoothScroll } from './theme/SmoothScroll.jsx';
 // import { KeycloakProvider } from './Keycloak/KeycloakProvider';
@@ -13,7 +15,7 @@ import App from './App.tsx'
 import './index.css'
 
 
-
+// const sessionID = uuidv4();
 const queryClient = new QueryClient();
 
 // On Apps First Load
@@ -57,6 +59,22 @@ const InitConfigProvider = ({ children, session }: { children: any, session: any
 
     // Set global access to server client
     (window as any).client = client;
+
+    // // client.ts
+    // const websocketClient = hc('http://localhost:5001');
+    // const ws = websocketClient.ws.$ws(0);
+
+    // ws.addEventListener('open', () => {
+    //     setInterval(() => {
+    //         ws.send(JSON.stringify({ 
+    //             timestamp: new Date().toString(), 
+    //             id: 3,
+    //             appID: "AiChat" ,
+    //             sessionID
+    //         }))
+    //     }, 1000);
+    // });
+
 
     return ({
         pending: "Uninitialized...",

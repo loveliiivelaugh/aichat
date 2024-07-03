@@ -43,6 +43,7 @@ function AppContent({ content }: { content: any }) {
 
   return (
     <>
+    
       <AppBar>
           <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
             <Box>
@@ -59,7 +60,9 @@ function AppContent({ content }: { content: any }) {
               <Avatar src={"M"} sx={{ width: 40, height: 40 }} />
           </Toolbar>
       </AppBar>
+
       <Chat content={content} />
+
     </>
   )
 }
