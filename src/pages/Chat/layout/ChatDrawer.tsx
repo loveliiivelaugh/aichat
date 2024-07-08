@@ -1,5 +1,6 @@
 // Packages
 import { forwardRef } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     Box,
     TextField, Typography, IconButton,
@@ -15,20 +16,14 @@ import SendIcon from '@mui/icons-material/Send';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
-// import ShareIcon from '@mui/icons-material/Share';
-// import HelpCenterIcon from '@mui/icons-material/HelpCenter';
-import { useMutation, useQuery } from '@tanstack/react-query';
 
 // Services
-// import { cms } from '../../../utilities/cms';
 import { useChatStore } from "../store";
 import { client, queries, queryPaths } from "../api";
 import { useSupabaseStore } from '../../../Auth/Auth';
 
 // import 'react-lazy-load-image-component/src/effects/opacity.css';
 
-// import notionIcon from '../../assets/notion_icon.png';
-// const notionIcon = null;
 
 const ChatDrawer = forwardRef(() => {
     const chat = useChatStore();
@@ -36,12 +31,6 @@ const ChatDrawer = forwardRef(() => {
     const mutation = useMutation(queries().modifyDb2());
     const availableModels = useQuery(queries().readFromDb('models'))
     const ingestedFiles = useQuery(queries().getIngestedFilesQuery);
-    // const ingestedFiles = [];
-    // const cb = (data) => {
-    //     console.log("getChatsQuery: in callback: ", data)
-    //     // handleChatSelection(data.data[0]);
-    //     return data;
-    // }
     const getChatsQuery = useQuery(queries().readFromDb('chats'));
     const { 
         data, 
@@ -53,17 +42,13 @@ const ChatDrawer = forwardRef(() => {
     let chatSessions = data?.data
 
     // get one session from chat history to prepopulate the chat 
-    const sessionQuery = useQuery({
+    useQuery({
         ...queries().readOneFromDb(),
         select: ({ data }: any) => {
-            console.log("sessionQuery.select: ", data)
             handleChatSelection(data);
             return data
         }
     });
-    console.log("sessionQuery: ", sessionQuery)
-
-    // let isSomethingWrong = (!availableModels.data || !ingestedFiles.data || !chatSessions);
 
     if (chatSessionsIsLoading || chatSessionsFetching) {
         return <CircularProgress />
@@ -124,7 +109,7 @@ const ChatDrawer = forwardRef(() => {
     
             chat.setMessages(response.data.messages || [])
     
-            refetchChatSessions();
+            // refetchChatSessions();
         } catch (error: any) {
             
             console.error(error)
@@ -223,7 +208,6 @@ const ChatDrawer = forwardRef(() => {
                                     '&:hover': { background: "rgba(0,0,0,0.1)" }
                                 }}
                             >
-                                {console.log("session: ", session) as any}
                                 <ListItemButton onClick={() => handleChatSelection(session)}>
                                     <ListItemText primary={session?.session_name} secondary={session.date} />
                                 </ListItemButton>
@@ -245,10 +229,9 @@ const ChatDrawer = forwardRef(() => {
                                 </Typography>
                             </Toolbar>
                             <Divider />
-                            { availableModels && availableModels?.data?.data &&
-                                availableModels?.isLoading 
+                            {availableModels?.isLoading 
                                 ? <CircularProgress /> 
-                                : "Not available" || [
+                                : [
                                     // available models coming directly from Ollama
                                     ...availableModels 
                                         ? availableModels?.data?.data 
@@ -269,8 +252,8 @@ const ChatDrawer = forwardRef(() => {
                                     <ListItemButton onClick={() => chat.setDefaultModel(model?.name)}>
                                         <ListItemText 
                                             primary={model?.name} 
-                                            // secondary={cms.ai_chat.available_models
-                                            //     .find(({ name }) => (name === model?.name))
+                                            // secondary={chat.appContent.cms.ai_chat.available_models
+                                            //     .find(({ name }: { name: string }) => (name === model?.name))
                                             //     ?.description 
                                             //     || 'No description'
                                             // }
@@ -332,7 +315,6 @@ const ChatDrawer = forwardRef(() => {
                                     </ListItem>
                                 ))
                             }
-                            {console.log("ingestedFiles: ", ingestedFiles) as any}
                         </List>
                     ),
                     "3": ( // Chat Settings

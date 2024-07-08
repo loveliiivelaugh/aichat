@@ -6,18 +6,14 @@ import HomeIcon from '@mui/icons-material/Home';
 import { useQuery } from '@tanstack/react-query';
 
 import Chat from "./pages/Chat/Chat";
+import BackToHome from './components/BackToHome';
 import { queries } from './pages/Chat/api';
 // import { useChatStore } from './pages/Chat/store';
 
 
 
 function AppContent({ content }: { content: any }) {
-  // const chatStore = useChatStore(useShallow((state) => state));
-  // let cpxState = (window as any)?.crossPlatformState?.data?.chatStoreData;
-
-  // // Set state from cross platform exchange
-  // chatStore.setState(cpxState);
-
+  
   function getLink(apps: any, appName: string = "FamilyApps") {
     const app = apps.find(({ name }: { name: string }) => (name === appName));
 
@@ -50,7 +46,6 @@ function AppContent({ content }: { content: any }) {
               <IconButton component="a" href={getLink(content.apps)}>
                   <HomeIcon />
               </IconButton>
-              {link()}
               {((window as any)?.crossPlatformState?.appId === "Fitness") 
                 ? (link()) 
                 : (<></>)
@@ -76,7 +71,15 @@ function App() {
     pending: <>Starting up...</>,
     loading: <>Loading...</>,
     success: <AppContent content={contentQuery.data} />,
-    error: <>Something went wrong</>
+    error: (
+      <BackToHome
+          message={{ 
+              element: (
+                  <h1>Oops! Something went wrong.</h1>
+              )
+          }}
+      />
+  )
   }[contentQuery.status])
 };
 

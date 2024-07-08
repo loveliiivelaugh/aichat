@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { createTheme, CssBaseline } from '@mui/material';
 import { ThemeProvider as MuiThemeProvider } from '@emotion/react';
 import { motion } from "framer-motion"
+import { useChatStore } from '../pages/Chat/store';
 
 
 const useTheme = (
@@ -15,11 +16,9 @@ const useTheme = (
 }), [mode]);
 
 
-const ThemeProvider = (
-  { children, themeConfig }: 
-  { children: ReactNode, themeConfig: any }
-) => {
-  const theme = useTheme({ mode: 'dark', themeConfig });
+const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const chatStore = useChatStore();
+  const theme = useTheme({ mode: 'dark', themeConfig: chatStore.appConfig?.themeConfig || { dark: "", light: "" } });
 
   return (
     <MuiThemeProvider theme={theme}>

@@ -1,17 +1,4 @@
-// Packages
-import { useRef } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { Box, CircularProgress, Typography } from '@mui/material';
-import { motion } from 'framer-motion';
-
-// Components
-import { ChatView } from './views';
-import ChatDrawer from './layout/ChatDrawer';
-import ChatTextField from './layout/ChatTextField';
-
-// Services
-import { useChatStore } from './store'
-import { queries, queryPaths } from './api';
+import { queryPaths } from "./api";
 
 
 interface MessageResult {
@@ -21,22 +8,19 @@ interface MessageResult {
     response?: string
 }
 
-const Chat = (props: { content : any }) => {
-    const chatStore = useChatStore();
-    const query = useQuery(queries().readFromDb('chats'));
-    const serverMutation = useMutation(queries().postToServer());
+const getMetaData = (chatStore: any) => ({
+    model: chatStore.defaultModel,
+    session_id: chatStore.activeChat?.session_id,
+    date: new Date().toLocaleDateString(),
+    time: new Date().toLocaleTimeString()
+});
 
-    const textFieldRef = useRef();
+const chatScripts = {
 
-    const getMetaData = () => ({
-        model: chatStore.defaultModel,
-        session_id: chatStore.activeChat?.session_id,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-    });
-
-
-    const handleSendMessage = async () => {
+    handleSendMessage: async (
+        { chatStore, serverMutation }:
+        { chatStore: any, serverMutation: any }
+    ) => {
         const { inputMessage } = chatStore;
 
         console.log('handleSendMessage.input: ', inputMessage)
@@ -47,7 +31,7 @@ const Chat = (props: { content : any }) => {
             }
             else {
                 const message = {
-                    ...getMetaData(),
+                    ...getMetaData(chatStore),
                     text: inputMessage, 
                     sender: 'user',
                     // if image is present, it will be handled in the backend
@@ -63,7 +47,7 @@ const Chat = (props: { content : any }) => {
                 // Define success handler callback -- Add response message to store
                 const handleSuccess = (result: MessageResult) => chatStore
                     .addMessage({
-                        ...getMetaData(),
+                        ...getMetaData(chatStore),
                         sender: 'bot',
                         text: result?.response,
                         model: result?.model,
@@ -80,27 +64,32 @@ const Chat = (props: { content : any }) => {
                         id: chatStore.activeChat.id,
                         message
                     }
-                }, { onError: console.error, onSuccess: (result) => {
+                }, { onError: console.error, onSuccess: (result: any) => {
                     console.log("is onSuccess in frontend handler working: ?", result)
                     handleSuccess(result)
                 } });
 
-                // Refetch Chat Query to align chat state with multiple db updates
-                query.refetch();
+                // // Refetch Chat Query to align chat state with multiple db updates
+                // query.refetch();
             }
             // // auto-scroll the container to the bottom
             // scrollChatToBottom();
         }
         // Clear the input
         chatStore.handleInput(""); // clear the chat
-    };
+        chatStore.handleImageSrc(null);
+    },
 
-    const handleSendPicture = async () => {
+    handleSendPicture: async (
+        { chatStore, serverMutation }:
+        { chatStore: any, serverMutation: any }
+    ) => {
+        console.log("chatScripts.handleSendPicture.first: ", chatStore)
         const { imageSrc, inputMessage } = chatStore;
         if (imageSrc) {
             // Add user's message to the chat
             chatStore.addMessage({
-                ...getMetaData(),
+                ...getMetaData(chatStore),
                 text: inputMessage, 
                 imageSrc, 
                 sender: 'user' 
@@ -109,13 +98,15 @@ const Chat = (props: { content : any }) => {
             // Define success handler callback -- Add response message to store
             const handleSuccess = (result: MessageResult) => chatStore
                 .addMessage({
-                    ...getMetaData(),
+                    ...getMetaData(chatStore),
                     sender: 'bot',
                     text: result?.response,
                     model: result?.model,
                     ...result?.image && { imageSrc: result.image }
                 });
 
+            
+            console.log("chatScripts.handleSendPicture: ", chatStore, imageSrc)
             // Combining updating database and making request to llm
             // Only need to send the current message and conversation id
             // Will query the running messages from the backend
@@ -124,7 +115,7 @@ const Chat = (props: { content : any }) => {
                 payload: {
                     id: chatStore.activeChat.id,
                     message: ({
-                        ...getMetaData(),
+                        ...getMetaData(chatStore),
                         sender: 'user',
                         text: inputMessage,
                         model: 'llava:7b-v1.6',
@@ -144,10 +135,66 @@ const Chat = (props: { content : any }) => {
 
         // // auto-scroll the container to the bottom
         // scrollChatToBottom();
-    };
+    },
 
-    const handleKeyPress = (event: KeyboardEvent) => {
-        console.log("key pressed: ", event, textFieldRef);
+    handleAddAttachment: async (store: any) => {
+
+        const attachmentInput = document.createElement('input');
+
+        attachmentInput.setAttribute('type', 'file');
+        attachmentInput.click();
+
+        attachmentInput.onchange = async () => {
+
+            const file = (attachmentInput as any).files[0];
+
+            console.log("handleAddAttachment: ", file)
+
+            const formData = new FormData();
+
+            formData.append("file", file);
+
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function() {
+                    const base64String = reader.result;
+                    console.log(base64String); // Outputs the base64 string
+                    // Do something with the base64 string, e.g., send it to a server
+                    store.handleImageSrc(base64String as string);
+                    formData.append("image", base64String as string);
+                };
+                reader.onerror = function(error) {
+                    console.error('Error reading file:', error);
+                };
+            }
+
+            store.handleAttachment(formData);
+
+            // const response = await fetch(queryPaths.ingest, {
+            //     method: "post",
+            //     body: formData
+            // });
+
+            // console.log("response: ", response);
+        };
+    },
+
+    handleDownload: (message: { imageSrc: string, text: string }) => {
+        const link = document.createElement('a');
+        link.download = 'ai-family-image.png';
+        link.href = message?.imageSrc;
+        link.click();
+    },
+
+    handleCopy: (message: { imageSrc: string, text: string }) => {
+        navigator
+            .clipboard
+            .writeText(message?.imageSrc || message?.text);
+    },
+
+    handleKeyPress: (event: KeyboardEvent, chatStore: any, handleSendMessage: () => void) => {
+        console.log("key pressed: ", event);
 
         if ((event.shiftKey && event.key === 'Enter')) 
             chatStore.handleInput(chatStore.inputMessage + '\n');
@@ -157,65 +204,10 @@ const Chat = (props: { content : any }) => {
             // Reset view
             chatStore.handleView("chat");
         }
-    };
+    }
 
-    let isGettingThingsReady = (query.isLoading || query.isFetching);
-
-    const imageViewProps = {
-        inputMessage: chatStore.inputMessage,
-        setInputMessage: chatStore.handleInput,
-        handleSendPicture
-    };
-
-    const chatViewProps = {
-        ...imageViewProps,
-        chatSessionsFetching: isGettingThingsReady,
-        isLoading: isGettingThingsReady,
-        handleSendMessage
-    };
-
-    const chatTextFieldProps = {
-        ...imageViewProps,
-        textFieldRef,
-        handleKeyPress,
-        handleSendMessage,
-        content: props.content
-    };
-
-    const views = {
-        chat: <ChatView {...chatViewProps} />,
-        // Before breaking into microservices, views included ...
-        // ... imageView, chatView, cameraView, and voiceView
-        launching: (
-            <motion.div>
-                <Box sx={{ height: '100vh', width: '100vw', background: '#333', pt: "50%", textAlign: 'center' }}>
-                    <Typography variant="h4" sx={{ color: 'white' }}>
-                        Getting things ready
-                    </Typography>
-                    <CircularProgress />
-                </Box>
-            </motion.div>
-        ) 
-    };
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ duration: 0.5 }}
-            style={{ width: "100vw" }}
-        >
-            {isGettingThingsReady 
-                ? views["launching"]
-                : (views as any)[chatStore.view] || views['chat']
-            }
-            <ChatDrawer />
-            {["chat", "image"].includes(chatStore.view) && 
-                <ChatTextField {...chatTextFieldProps} />
-            }
-        </motion.div>
-    )
 };
 
-export default Chat
+export {
+    chatScripts
+};

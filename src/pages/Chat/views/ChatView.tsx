@@ -3,13 +3,13 @@ import { useEffect, useRef } from 'react';
 import {
     Box, Grid, Typography, IconButton,
     CardActionArea, Tooltip, Stack, ListItemText,
-    CircularProgress
+    CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/opacity.css';
-
 // Icons
+import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 
@@ -19,6 +19,7 @@ import MarkdownWrapper from '../layout/Markdown';
 
 // Services
 import { useChatStore } from "../store";
+import { client, queryPaths } from '../api';
 
 
 const ChatView = (props: any) => {
@@ -82,7 +83,22 @@ const ChatView = (props: any) => {
         link.download = 'ai-family-image.png';
         link.href = message?.imageSrc;
         link.click();
-    }
+    };
+
+    const handleDeleteMessage = (index: number) => {
+
+        // Remove the message from the messages array by index
+        chat.messages.splice(index, 1);
+        // Set the new messages array in the store
+        chat.setMessages(chat.messages);
+
+        // Update the database
+        client.put(queryPaths.updateDb, {
+            table: 'chats',
+            session_id: chat?.activeChat?.session_id,
+            messages: chat?.messages
+        });
+    };
 
     // const handleKeyPress = (e) => {
     //     if (e.key === 'Enter' && chat?.imageSrc) handleSendPicture();
@@ -125,6 +141,11 @@ const ChatView = (props: any) => {
                         </IconButton>
                     </Tooltip>
                 )}
+                <Tooltip title="Delete Message">
+                    <IconButton size="small" onClick={() => handleDeleteMessage(props.data.index)}>
+                        <DeleteIcon />
+                    </IconButton>
+                </Tooltip>
             </CardActionArea>
         </Box>
     )
@@ -165,7 +186,7 @@ const ChatView = (props: any) => {
                                                 padding: '8px'
                                             }}
                                         >
-                                            {/* {console.log("message: ", message)} */}
+                                            {console.log("message: ", message) as any}
                                             <ListItemText
                                                 primary={message.sender === 'bot' ? 'AI' : 'You'} 
                                                 secondary={message?.model}
@@ -173,14 +194,29 @@ const ChatView = (props: any) => {
                                             {
                                                 message?.imageSrc ? (
                                                     <>
-                                                        <LazyLoadImage 
-                                                            key={index} 
-                                                            effect="opacity" 
-                                                            src={message.imageSrc} 
-                                                            alt="Captured image" 
-                                                            width={'100%'} 
-                                                            style={{ maxWidth: '100%', borderRadius: '8px' }} 
-                                                        />
+                                                        {message?.imageSrc && (typeof message.imageSrc === "string")
+                                                            ? ( // if it is not null
+                                                                <LazyLoadImage 
+                                                                    key={index} 
+                                                                    effect="opacity" 
+                                                                    src={message.imageSrc} 
+                                                                    alt="Captured image" 
+                                                                    width={'100%'} 
+                                                                    style={{ maxWidth: '100%', borderRadius: '8px' }} 
+                                                                />
+                                                            ) : Array.isArray(message.imageSrc)
+                                                                ? (message.imageSrc as string[]).map((src: string) => (
+                                                                    <LazyLoadImage 
+                                                                        // key={index} 
+                                                                        effect="opacity" 
+                                                                        src={src} 
+                                                                        alt="Captured image" 
+                                                                        width={'400px'} 
+                                                                        style={{ maxWidth: '100%', borderRadius: '12px', padding: '0 8px' }} 
+                                                                    />
+                                                                ))
+                                                                : <></>
+                                                        }
                                                         <MarkdownWrapper isLastElement={(chat.messages.length - 1 === index)}>
                                                             {message?.text || ""}
                                                         </MarkdownWrapper>

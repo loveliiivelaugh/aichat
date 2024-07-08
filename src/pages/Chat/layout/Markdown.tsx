@@ -1,4 +1,4 @@
-
+import { useState } from 'react'
 import Markdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -9,6 +9,7 @@ import { TextGenerateEffect } from '../../../theme/TextGenerateEffect'
 // import { TypewriterEffect } from '../../../theme/TypeWriterEffect'
 
 const MarkdownWrapper = ({ children, isLastElement = false }: { children: string, isLastElement?: boolean}) => {
+    const [didRender, setDidRender] = useState(false);
     return (
         <Markdown
             children={children}
@@ -16,7 +17,7 @@ const MarkdownWrapper = ({ children, isLastElement = false }: { children: string
             rehypePlugins={[rehypeKatex]}
             components={{
                 code({ node, className, children, ...props }) {
-                    console.log("code element props: ", props)
+                    // console.log("code element props: ", props)
                     const match = /language-(\w+)/.exec(className || '');
                     return match ? (
                         <SyntaxHighlighter
@@ -41,7 +42,9 @@ const MarkdownWrapper = ({ children, isLastElement = false }: { children: string
                 },
                 img: (props) => <LazyLoadImage {...props} effect="blur" />,
                 ...isLastElement && {
-                    p: (props) => <TextGenerateEffect words={(props.children as string)} />
+                    p: (props) => !didRender 
+                        ? <TextRenderWrapper children={props.children} setDidRender={setDidRender} />
+                        : <p>{props.children}</p>
                 }
                 // p: (props) => <TypewriterEffect words={props.children.split(' ')} />,
             }}
@@ -50,3 +53,11 @@ const MarkdownWrapper = ({ children, isLastElement = false }: { children: string
 }
 
 export default MarkdownWrapper
+
+const TextRenderWrapper = (props: any) => {
+    const { children, setDidRender } = props;
+
+    setDidRender(true);
+
+    return <TextGenerateEffect words={(children as string)} />;
+}

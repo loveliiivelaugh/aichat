@@ -1,12 +1,30 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { Box } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { create } from 'zustand';
 
-import { client } from '../pages/Chat/api';
-// import './index.css'
+import { client, queryPaths } from '../pages/Chat/api';
+import { useChatStore } from '../pages/Chat/store';
+
+
+
+// TODO:  For Websocket
+// const sessionID = uuidv4();
+
+const useAppConfig = async () => {
+    const appStore = useChatStore();
+
+    async function getAndSetAppConfig() {
+        const appConfigQuery = (await client.get(queryPaths.getAppConfig)).data;
+        appStore.setAppConfig(appConfigQuery);
+
+        return appConfigQuery
+    };
+
+    return {
+        getAndSetAppConfig
+    };
+};
 
 const {
     VITE_SUPABASE_URL: supabaseUrl,
@@ -22,30 +40,37 @@ interface SupabaseStoreTypes {
 }
 
 export const useSupabaseStore = create<SupabaseStoreTypes>((set) => ({
-    // states
     session: null,
-
-    // actions
     setSession: (session: any) => set({ session }),
-}))
+}));
 
 export function SupabaseAuthProvider({ children }: any) {
     const supabaseStore = useSupabaseStore();
+    const appConfigHook = useAppConfig();
+
     const [session, setSession] = useState(null)
 
     useEffect(() => {
+        // Gotta get the cookie from the server in Production
+        (() => async () => {
+            const serverCookies = await client.get(`/auth/v1/protected`);
+            // document.cookie = `${secretCookie}=${serverCookies.data.token}; SameSite=strict; path=/;`;  
+            console.log("serverCookies: ", serverCookies);
+        })();
+
         const [, token] = document.cookie.split(`${secretCookie}=`);
 
         if (token) {
             (async () => {
                 (client as any).defaults.headers.common["Authorization"] = `Bearer ${token}`;
-                
                 const existingSession = (await client.get(`/auth/v1/user`)).data;
                 
                 if (existingSession?.refresh_token) await supabase.auth
                     .refreshSession({ refresh_token: existingSession.refresh_token as string });
                 
-                // console.log({ existingSession });
+                // After authentication, get and set app config
+                (await appConfigHook).getAndSetAppConfig();
+                
             })();
         };
 
@@ -59,8 +84,9 @@ export function SupabaseAuthProvider({ children }: any) {
         } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
             setSession(session)
             supabaseStore.setSession(session)
+            // Application-specific authentication logic
+            client.defaults.headers.common["auth-token"] = `userAuthToken=${session?.access_token}&appId=${import.meta.env.VITE_APP_ID}`;
         })
-
 
         return () => subscription.unsubscribe()
     }, [])
@@ -79,13 +105,12 @@ export function SupabaseAuthProvider({ children }: any) {
                     width: "100vw" 
                 }}
             >
-                <Auth 
-                    supabaseClient={supabase} 
-                    appearance={{ theme: ThemeSupa }} 
-                    redirectTo={import.meta.env.BASE_URL + "authenticated"}
-                />
+                <Typography variant="h4">No session found</Typography>
+                <Button variant="contained" color="error" onClick={() => window.open(queryPaths.appDepot, "_parent")}>
+                    Back to AppDepot
+                </Button>
             </Box>
         )
     }
-    else return children(session);
+    else return children;
 }
