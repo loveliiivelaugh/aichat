@@ -1,0 +1,34 @@
+    {
+        "compilerOptions": {
+            "types": [
+                "@rspack/core/module"
+            ],
+
+            "outDir": "./dist/",
+            "noImplicitAny": true,
+            "module": "ESNext",
+            "target": "ESNext",
+            "jsx": "react-jsx",
+            "allowJs": true,
+            "moduleResolution": "node",
+
+            "useDefineForClassFields": true,
+            "lib": ["ESNext", "DOM", "DOM.Iterable"],
+            "skipLibCheck": true,
+
+            "noImplicitThis": true,
+            "strictNullChecks": true,
+
+            "resolveJsonModule": true,
+            "isolatedModules": true,
+            "noEmit": false,
+
+            "strict": true,
+            "noUnusedLocals": true,
+            "noUnusedParameters": true,
+            "noFallthroughCasesInSwitch": true,
+
+            "esModuleInterop": true
+        },
+        "include": ["src"]
+    }

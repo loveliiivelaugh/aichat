@@ -1,0 +1,35 @@
+{
+  "name": "aichat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "dev": "rsbuild dev --open",
+    "pro": "concurrently \"npm run test\" \"npm run dev\"",
+    "build": "rsbuild build",
+    "serve": "rspack serve",
+    "preview": "rsbuild preview",
+    "all": "../_run.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@module-federation/enhanced": "^0.6.6",
+    "@rsbuild/core": "^1.0.5",
+    "@rsbuild/plugin-react": "^1.0.2",
+    "@rspack/plugin-react-refresh": "^1.0.0",
+    "@types/react": "^18.3.8",
+    "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-istanbul": "^2.1.1",
+    "html-webpack-plugin": "^5.6.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}
