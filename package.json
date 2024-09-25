@@ -9,7 +9,7 @@
     "dev": "rsbuild dev --open",
     "pro": "concurrently \"npm run test\" \"npm start\"",
     "start": "webpack serve --mode development",
-    "wbuild": "webpack --mode production",
+    "build": "webpack --mode production",
     "rbuild": "rsbuild build",
     "serve": "rspack serve",
     "preview": "rsbuild preview"
