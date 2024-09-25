@@ -7,11 +7,12 @@
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "dev": "rsbuild dev --open",
-    "pro": "concurrently \"npm run test\" \"npm run dev\"",
-    "build": "rsbuild build",
+    "pro": "concurrently \"npm run test\" \"npm start\"",
+    "start": "webpack serve --mode development",
+    "wbuild": "webpack --mode production",
+    "rbuild": "rsbuild build",
     "serve": "rspack serve",
-    "preview": "rsbuild preview",
-    "all": "../_run.sh"
+    "preview": "rsbuild preview"
   },
   "keywords": [],
   "author": "",
@@ -28,8 +29,15 @@
     "@types/react": "^18.3.8",
     "@types/react-dom": "^18.3.0",
     "@vitest/coverage-istanbul": "^2.1.1",
+    "babel-loader": "^9.2.1",
+    "css-loader": "^7.1.2",
     "html-webpack-plugin": "^5.6.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
     "typescript": "^5.6.2",
-    "vitest": "^2.1.1"
+    "vitest": "^2.1.1",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0"
   }
 }

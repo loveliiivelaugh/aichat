@@ -8,6 +8,7 @@ const {ModuleFederationPlugin} = require('@module-federation/enhanced/rspack');
 export default defineConfig({
     entry: './src/index.ts',
     context: __dirname,
+    watch: true,
     // Javascript / Typescript support
     module: {
         rules: [
@@ -73,7 +74,7 @@ export default defineConfig({
                         // development
                         // app: 'app@http://localhost:8080/mf-manifest.json',
                     },
-                    shared: ['react', 'react-dom'],
+                    shared: ['react', 'react-dom', 'zustand', 'react-router-dom'],
                 }),
                 new ReactRefreshPlugin(),
             ],

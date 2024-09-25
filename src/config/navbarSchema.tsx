@@ -1,8 +1,8 @@
-import React from 'react';
+// @ts-ignore
 import NavMenu from 'app/NavMenu';
 
 // FamilyApps Navbar Schema
-export const aichatNavbarSchema = ({ navigate }) => ({
+export const aichatNavbarSchema = ({ navigate }: { navigate: any }) => ({
     left: {
         items: [
             {

@@ -1,6 +1,8 @@
-import React from 'react';
+// @ts-ignore
 import RemoteApp from 'mf2/App';
+// @ts-ignore
 import ChatBox from 'mf2/ChatBox';
+// @ts-ignore
 import ChatView from 'mf2/ChatView';
 import './App.css';
 
@@ -15,7 +17,7 @@ const App = (
     <RemoteApp />
     <ChatView />
     <ChatBox handleSend={(send: any) => {
-        console.log("send Callback from host app: ", send)
+        console.log("send Callback from host app: ", send, utilityStore);
     }} />
 </div>
 );
