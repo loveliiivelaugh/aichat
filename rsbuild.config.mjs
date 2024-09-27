@@ -69,6 +69,7 @@ export default defineConfig({
                     },
                     remotes: {
                         // production
+                        // mf2: 'mf2@http://localhost:8082/remoteEntry.js',
                         mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
                         // app: 'app@https://cherrytopframework.netlify.app/mf-manifest.json',
                         // development

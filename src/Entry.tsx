@@ -5,12 +5,13 @@ import App from './components/App';
 // import all the stores to keep single instance
 // could use a localstore to copy stores instances and ref from there
 // @ts-ignore
-import { useUtilityStore } from 'mf2/utilities/store/utilityStore';
+import { useUtilityStore, useChatStore } from 'mf2/utilities/store';
 
 
 const StoresProvider = ({ children }: { children: (stores: any) => JSX.Element }) => {
     const utilityStore = useUtilityStore();
-    return children({ utilityStore });
+    const chatStore = useChatStore();
+    return children({ utilityStore, chatStore });
 };
 
 const Entry = () => {

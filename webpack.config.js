@@ -45,6 +45,7 @@ module.exports = {
             filename: "remoteEntry.js",
             remotes: {
                 // import cherrytopframework
+                // mf2: 'mf2@http://localhost:8082/remoteEntry.js',
                 mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
             },
             exposes: {

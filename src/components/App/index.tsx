@@ -4,22 +4,87 @@ import RemoteApp from 'mf2/App';
 import ChatBox from 'mf2/ChatBox';
 // @ts-ignore
 import ChatView from 'mf2/ChatView';
+// @ts-ignore
+import Tabs from 'mf2/Tabs';
+// @ts-ignore
+import QueryWrapper from 'mf2/QueryWrapper';
+// @ts-ignore
+import chatScripts from 'mf2/chatScripts';
 import './App.css';
+
+const transformResult = (result: any, children: any) => result?.data 
+    && children({
+        ...result.data[0],
+        original: result,
+        messages: result.data[0].messages,
+        activeChat: result.data[0].session_name,
+        activeChatId: result.data[0].session_id
+    });
 
 const App = (
   // destructure the store needed to render less code
-    { stores: { utilityStore } }:
+    { stores: { utilityStore, chatStore }}:
     { stores?: any }
 ) => (
-<div className="content">
-    <h1>Rsbuild with React</h1>
-    <p>Start building amazing things with Rsbuild.</p>
-    <RemoteApp />
-    <ChatView />
-    <ChatBox handleSend={(send: any) => {
-        console.log("send Callback from host app: ", send, utilityStore);
-    }} />
-</div>
+    <div className="content">
+        <QueryWrapper path={({ database }: { database: string }) => `${database}chats`}>
+            {(result: any) => transformResult(result, (newResult: any) => (
+                <>
+                    <ChatView chatStore={chatStore} initialData={newResult} />
+                    <ChatBox
+                        initialData={newResult}
+                        chatStore={chatStore}
+                        // {...getChatBoxProps({ utilityStore, ...otherGoodies })}
+                        // pull out the logic into a function that returns an object of the props
+                        handleCameraClick={() => {
+                            
+                        }}
+                        handleAttachmentClick={() => chatScripts.handleAttachmentClick(chatStore)}
+                        // *optional* if submitPath is set handleSend will handle the response
+                        submitPath={(paths: { [key: string]: string }) => paths.chat}
+                        // *optional* if submitPath is not set handleSend will handle submit
+                        // with submitPath set handleSend will be called throughout async to 
+                        // ... capture a status output, data, and error
+                        handleSend={(response: any) => {
+                            console.log("send Callback from host app: ", response, utilityStore);
+                        }}
+                        handleDrawerClick={() => utilityStore.setDrawer({ 
+                            open: true, 
+                            anchor: "bottom",
+                            onOpen: () => {},
+                            content: (
+                                <Tabs 
+                                    tabs={[
+                                        {
+                                            value: "recents",
+                                            label: "Recents"
+                                        },
+                                        {
+                                            value: "favorites",
+                                            label: "Favorites"
+                                        },
+                                        {
+                                            value: "search",
+                                            label: "Search"
+                                        },
+                                    ]}
+                                    onChange={(value: string) => console.log("The search tab changed: ", value)}
+                                    renderContent={(value: string) => (
+                                        <div>
+                                            <pre>
+                                                {value}
+                                                {JSON.stringify(value, null, 2)}
+                                            </pre>
+                                        </div>
+                                    )}
+                                />
+                            )
+                        })}
+                    />
+                </>
+            ))}
+        </QueryWrapper>
+    </div>
 );
 
 export default App;
