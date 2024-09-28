@@ -9,8 +9,11 @@ import Tabs from 'mf2/Tabs';
 // @ts-ignore
 import QueryWrapper from 'mf2/QueryWrapper';
 // @ts-ignore
+import FullScreenLoader from 'mf2/FullScreenLoader';
+// @ts-ignore
 import chatScripts from 'mf2/chatScripts';
 import './App.css';
+
 
 const transformResult = (result: any, children: any) => result?.data 
     && children({
@@ -23,21 +26,36 @@ const transformResult = (result: any, children: any) => result?.data
 
 const App = (
   // destructure the store needed to render less code
-    { stores: { utilityStore, chatStore }}:
-    { stores?: any }
+    { stores: { utilityStore, chatStore, sharedStore }, router}:
+    { stores?: any, [key: string]: any }
 ) => (
     <div className="content">
-        <QueryWrapper path={({ database }: { database: string }) => `${database}chats`}>
+        <QueryWrapper
+            path={({ database }: { database: string }) => `${database}chats`}
+            loadingContent={<FullScreenLoader />}
+        >
             {(result: any) => transformResult(result, (newResult: any) => (
                 <>
                     <ChatView chatStore={chatStore} initialData={newResult} />
                     <ChatBox
                         initialData={newResult}
                         chatStore={chatStore}
-                        // {...getChatBoxProps({ utilityStore, ...otherGoodies })}
-                        // pull out the logic into a function that returns an object of the props
                         handleCameraClick={() => {
-                            
+                            if (sharedStore && chatStore) {
+                                // this is to pass state to the Camera mfe
+                                const filteredState = Object.assign(
+                                    {},
+                                    ...Object
+                                        .keys(chatStore)
+                                        .map((key: string) => (
+                                            !["messages"].includes(key)
+                                            && (typeof chatStore[key] !== "function")
+                                        ) && ({ [key]: chatStore[key] }))
+                                );
+                                sharedStore.setState(filteredState);
+                            };
+
+                            if (router?.go) router.go("/camera");
                         }}
                         handleAttachmentClick={() => chatScripts.handleAttachmentClick(chatStore)}
                         // *optional* if submitPath is set handleSend will handle the response
@@ -46,7 +64,7 @@ const App = (
                         // with submitPath set handleSend will be called throughout async to 
                         // ... capture a status output, data, and error
                         handleSend={(response: any) => {
-                            console.log("send Callback from host app: ", response, utilityStore);
+                            console.logs("send Callback from host app: ", response, utilityStore);
                         }}
                         handleDrawerClick={() => utilityStore.setDrawer({ 
                             open: true, 
@@ -68,7 +86,7 @@ const App = (
                                             label: "Search"
                                         },
                                     ]}
-                                    onChange={(value: string) => console.log("The search tab changed: ", value)}
+                                    onChange={(value: string) => console.logs("The search tab changed: ", value)}
                                     renderContent={(value: string) => (
                                         <div>
                                             <pre>
