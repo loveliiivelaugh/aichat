@@ -15,7 +15,7 @@ import chatScripts from 'mf2/chatScripts';
 import './App.css';
 
 
-const transformResult = (result: any, children: any) => result?.data 
+const transformResult = (result: any, children: any) => (result?.data && result.data.length)
     && children({
         ...result.data[0],
         original: result,
@@ -26,19 +26,21 @@ const transformResult = (result: any, children: any) => result?.data
 
 const App = (
   // destructure the store needed to render less code
-    { stores: { utilityStore, chatStore, sharedStore }, router}:
+    { stores: { utilityStore, chatStore, sharedStore }, router, Crumbs}:
     { stores?: any, [key: string]: any }
 ) => (
     <div className="content">
+        <Crumbs />
         <QueryWrapper
-            path={({ database }: { database: string }) => `${database}chats`}
+            path={({ database }: { database: string }) => `${database}chats?exclude=messages`}
             loadingContent={<FullScreenLoader />}
         >
             {(result: any) => transformResult(result, (newResult: any) => (
                 <>
-                    <ChatView chatStore={chatStore} initialData={newResult} />
+                    <ChatView chatStore={chatStore} /> <ChatView initialData={newResult} />
+                    {console.log("newResult: ", newResult)}
                     <ChatBox
-                        initialData={newResult}
+                        // initialData={newResult}
                         chatStore={chatStore}
                         handleCameraClick={() => {
                             if (sharedStore && chatStore) {

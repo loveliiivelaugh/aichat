@@ -10,9 +10,8 @@ import { useUtilityStore, useChatStore } from 'mf2/utilities/store';
 import Logs from 'mf2/utilities/Logs';
 
 
-const logs = new Logs('aichat:3002', 'background: #222; color: #badaff');
+export const logs = new Logs('aichat:3002', 'background: #222; color: #badaff');
 logs.log('Hello and welcome! This is a test: ', 'Additional info', 123);
-
 console.logs = logs.log;
 // custom.d.ts
 declare global {

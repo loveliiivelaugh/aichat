@@ -38,9 +38,11 @@
             /* Docker Config */
             "esModuleInterop": true,
 
+            "baseUrl": "./src",
             /** RSPack Config **/
             "paths":{
-                "*": ["./@mf-types/*"]
+                "*": ["./@mf-types/*"],
+                "mf2/*": ["mf2/*"]
             },
 
             /** Rustpack default Config **/

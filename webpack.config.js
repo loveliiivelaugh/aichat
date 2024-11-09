@@ -36,7 +36,11 @@ module.exports = {
         alias: {},
     },
     devServer: {
-        port: 3002
+        port: 3002,
+        headers: {
+            'Cross-Origin-Embedder-Policy': 'require-corp',
+            'Cross-Origin-Opener-Policy': 'same-origin',
+        }
     },
     plugins: [
         new HtmlWebpackPlugin({ template: './public/index.html' }),
@@ -46,12 +50,12 @@ module.exports = {
             remotes: {
                 // import cherrytopframework
                 app: 'app@http://localhost:8080/mf-manifest.json',
-                // mf2: 'mf2@http://localhost:8082/remoteEntry.js',
-                mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
+                mf2: 'mf2@http://localhost:8082/remoteEntry.js',
+                // mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
             },
             exposes: {
                 // export app
-                "./App": "./src/Entry.tsx",
+                "./App": "./src/Entry.dev.tsx",
             },
             shared: {
                 react: {singleton: true},

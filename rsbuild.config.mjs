@@ -65,7 +65,7 @@ export default defineConfig({
                 new ModuleFederationPlugin({
                     name: 'aichat',
                     exposes: {
-                        './App': './src/Entry.tsx',
+                        './App': './src/index.ts',
                     },
                     remotes: {
                         // production
