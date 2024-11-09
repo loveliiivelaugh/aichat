@@ -35,15 +35,9 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx'], // Resolves these extensions
         alias: {},
     },
-    server: {
-        port: 3002,
-        headers: {
-            'Cross-Origin-Embedder-Policy': 'require-corp',
-            'Cross-Origin-Opener-Policy': 'same-origin',
-        }
-    },
     devServer: {
         port: 3002,
+        host: '0.0.0.0',
         headers: {
             'Cross-Origin-Embedder-Policy': 'require-corp',
             'Cross-Origin-Opener-Policy': 'same-origin',
@@ -56,8 +50,8 @@ module.exports = {
             filename: "remoteEntry.js",
             remotes: {
                 // import cherrytopframework
-                app: 'app@http://localhost:8080/mf-manifest.json',
-                mf2: 'mf2@http://localhost:8082/remoteEntry.js',
+                // app: 'app@http://localhost:8080/mf-manifest.json',
+                // mf2: 'mf2@http://localhost:8082/remoteEntry.js',
                 // mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
             },
             exposes: {
