@@ -35,6 +35,13 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx'], // Resolves these extensions
         alias: {},
     },
+    server: {
+        port: 3002,
+        headers: {
+            'Cross-Origin-Embedder-Policy': 'require-corp',
+            'Cross-Origin-Opener-Policy': 'same-origin',
+        }
+    },
     devServer: {
         port: 3002,
         headers: {
