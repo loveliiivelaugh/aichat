@@ -51,7 +51,7 @@ const BasicApp = (props: { stores?: any, [key: string]: any }) => {
                             // chatStore.handleInput("");
                         }}
                         onSuccess={(result: any, messages: any[]) => {
-                            console.logs("onSuccess: ", result, messages)
+                            console.log("onSuccess: ", result, messages)
                         }}
                     />
                 </Grid>

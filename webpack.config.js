@@ -52,7 +52,7 @@ module.exports = {
                 // import cherrytopframework
                 // app: 'app@http://localhost:8080/mf-manifest.json',
                 // mf2: 'mf2@http://localhost:8082/remoteEntry.js',
-                // mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
+                mf2: 'mf2@https://cherrytopframeworktester.netlify.app/remoteEntry.js',
             },
             exposes: {
                 // export app

@@ -6,8 +6,9 @@ import TestEntry from './TestEntry';
 // const isDevelopment = (process.env.NODE_ENV !== 'production');
 
 const root = createRoot(document.getElementById('root')!);
-root.render(<TestEntry />
+// root.render(<DevEntry />);
+root.render(<TestEntry />);
     // isDevelopment
     // ? <DevEntry />
     // : <Entry />
-);
+// );

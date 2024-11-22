@@ -66,7 +66,7 @@ const App = (
                         // with submitPath set handleSend will be called throughout async to 
                         // ... capture a status output, data, and error
                         handleSend={(response: any) => {
-                            console.logs("send Callback from host app: ", response, utilityStore);
+                            console.log("send Callback from host app: ", response, utilityStore);
                         }}
                         handleDrawerClick={() => utilityStore.setDrawer({ 
                             open: true, 
@@ -88,7 +88,7 @@ const App = (
                                             label: "Search"
                                         },
                                     ]}
-                                    onChange={(value: string) => console.logs("The search tab changed: ", value)}
+                                    onChange={(value: string) => console.log("The search tab changed: ", value)}
                                     renderContent={(value: string) => (
                                         <div>
                                             <pre>

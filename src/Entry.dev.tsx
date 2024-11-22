@@ -5,7 +5,7 @@ import Providers from 'mf2/AppProvider';
 import { useUtilityStore, useChatStore } from 'mf2/utilities/store';
 // @ts-ignore
 import Logs from 'mf2/utilities/Logs';
-import BasicApp from './components/BasicApp/BasicApp';
+import BasicApp from './components/custom/BasicApp/BasicApp';
 
 
 (function () {
